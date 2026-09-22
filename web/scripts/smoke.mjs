@@ -212,7 +212,7 @@ const joinState = await pg.evaluate(() => {
     unconfigured: /sign-in is not set up here/i.test(text),
     hasFormFields:
       document.querySelectorAll("main input, main select, main textarea").length > 0,
-    statesDomain: /sst\\.scaler\\.com/i.test(text),
+    statesDomain: /sst\.scaler\.com/i.test(text),
   };
 });
 
@@ -228,28 +228,15 @@ ok(
   "and no application fields survive on the page",
   !joinState.hasFormFields,
 );
-// THE ASSERTION THAT WOULD CATCH A REGRESSION HERE. A form reappearing on this page is
-// the specific thing this change removed, so its absence is checked rather than assumed —
-// zero inputs of any kind in the main column.
-ok(
-  "and no application fields survive on the page",
-  (await pg.evaluate(
-    () => document.querySelectorAll("main input, main select, main textarea").length,
-  )) === 0,
-);
 ok(
   "join keeps ?path in the URL",
   new URL(pg.url()).searchParams.get("path") === "program-track",
 );
-// THE DOMAIN RULE IS ON THE PAGE, not just in the rules. It is the whole membership test
-// and the one sentence a reader cannot afford to skim past, so a copy pass that removed it
-// would leave people signing in with a personal Gmail and being refused with no warning.
-ok(
-  "and states the one address that can register",
-  (await pg.evaluate(() =>
-    /sst\.scaler\.com/i.test(document.querySelector("main")?.innerText ?? ""),
-  )),
-);
+// The domain rule is important in both states: a configured gate explains the membership
+// requirement, while the unconfigured state explains what will be required once auth is
+// available.
+ok("and states the one address that can register", joinState.statesDomain);
+
 // The form must NOT be reachable without signing in. This is a UI assertion, not a
 // security one — the boundary is firestore.rules — but a form rendering to a signed-out
 // visitor would mean the gate had broken open.
