@@ -241,8 +241,10 @@ function Gate() {
         <p className="text-display-md font-semibold">Sign-in is not set up here.</p>
         <p className="measure mt-4 text-body text-haze">
           This deployment has no Firebase configuration, so registration is switched off.
-          If you are running the site locally, see <code>web/.env.example</code>. If you
-          are seeing this on the live site, that is a bug — please tell us.
+          When sign-in is available, only students with an <strong className="text-ink">@{DOMAIN}</strong>
+          address can register. If you are running the site locally, see{" "}
+          <code>web/.env.example</code>. If you are seeing this on the live site, that is a
+          bug — please tell us.
         </p>
         <a href={`mailto:${LINKS.email}`} className="btn btn-secondary mt-6">
           Email the organisers
