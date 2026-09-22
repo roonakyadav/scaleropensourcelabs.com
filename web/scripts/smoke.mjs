@@ -205,11 +205,28 @@ await pg.waitForTimeout(700);
 // deleted. The page held an anonymous application form for a spell; membership is an
 // @sst.scaler.com address, which is the one thing that form could not check, so the door
 // and the test are the same act now.
+const joinState = await pg.evaluate(() => {
+  const text = document.querySelector("main")?.innerText ?? "";
+  return {
+    configured: /continue with google|sign in with your college account/i.test(text),
+    unconfigured: /sign-in is not set up here/i.test(text),
+    hasFormFields:
+      document.querySelectorAll("main input, main select, main textarea").length > 0,
+    statesDomain: /sst\\.scaler\\.com/i.test(text),
+  };
+});
+
+// CI intentionally runs without Firebase configuration. In that environment /join must
+// show the honest "not configured" state instead of a fake sign-in control. In a configured
+// deployment it must show the real college-account sign-in gate. Both states must remain
+// form-free.
 ok(
-  "join offers sign-in, not a form",
-  (await pg.evaluate(() =>
-    /continue with google/i.test(document.querySelector("main")?.innerText ?? ""),
-  )),
+  "join shows a valid gate state",
+  joinState.configured || joinState.unconfigured,
+);
+ok(
+  "and no application fields survive on the page",
+  !joinState.hasFormFields,
 );
 // THE ASSERTION THAT WOULD CATCH A REGRESSION HERE. A form reappearing on this page is
 // the specific thing this change removed, so its absence is checked rather than assumed —
